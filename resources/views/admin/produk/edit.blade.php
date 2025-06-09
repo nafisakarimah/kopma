@@ -16,6 +16,17 @@
         {{ $errors->first('error') }}
     </div>
 @endif
+@if ($errors->any())
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <strong>Oops! Ada kesalahan:</strong>
+        <ul class="list-disc pl-5 mt-2">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 
 <form action="{{ route('admin.produk.update',$produk->id) }}" method="post" enctype="multipart/form-data">
     @csrf
@@ -41,7 +52,7 @@
             <div class="row mb-3">
                 <div class="col-md-4">
                     <div class="img-thumbnail">
-                        <img src="{{ asset($produk->gambar) }}" alt="No Image" width="100%" id="image-product-show">
+                        <img src="{{ url('uploads/'.$produk->gambar) }}" alt="No Image" width="100%" id="image-product-show">
                     </div>
                 </div>
             </div>
@@ -89,17 +100,18 @@
                             </thead>
                             <tbody id="body-ukuran">
                                 @if ($produk->kategori->ukuran)
-                                    @foreach ($produk->ukuran as $item)
-                                        <tr>
-                                            <td><input type="text" name="ukuran[0][ukuran]" class="form-control" placeholder="Ukuran" value="{{ $item->ukuran }}"></td>
-                                            <td><input type="number" name="ukuran[0][stok]" class="form-control" placeholder="Stok" value="{{ $item->stok }}"></td>
-                                            <td>
-                                                @if ($loop->index > 0)
-                                                <button type="button" class="btn btn-sm btn-danger ukuran-hapus">Hapus</button>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endforeach
+                                @foreach ($produk->ukuran as $item)
+                                    <tr>
+                                        <td><input type="text" name="ukuran[{{ $loop->index }}][ukuran]" class="form-control" placeholder="Ukuran" value="{{ old("ukuran.{$loop->index}.ukuran", $item->ukuran) }}"></td>
+                                        <td><input type="number" name="ukuran[{{ $loop->index }}][stok]" class="form-control" placeholder="Stok" value="{{ old("ukuran.{$loop->index}.stok", $item->stok) }}"></td>
+                                        <td>
+                                            @if ($loop->index > 0)
+                                            <button type="button" class="btn btn-sm btn-danger ukuran-hapus">Hapus</button>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+
                                 @endif
                             </tbody>
                         </table>
@@ -108,7 +120,8 @@
             </div>
         </div>
 
-        <div class="col-md-6 {{ $produk->kategori->ukuran == '1'? 'collapse' : '' }}" id="produk-nonukuran-konten">
+        <div class="col-md-6 {{ optional($produk->kategori)->ukuran == '1'? 'collapse' : '' }}" id="produk-nonukuran-konten">
+        {{-- <div class="col-md-6 " id="produk-nonukuran-konten"> --}}
             <div class="form-group">
                 <label for="">Stok</label>
                 <input type="number" name="stok" class="form-control" placeholder="Masukkan Stok" value="{{ $produk->stok }}">
@@ -119,7 +132,7 @@
         </div>
         <div class="col-md-8">
             <div class="form-group">
-                <label for="">Deskripsi</label>
+                <label for="">Deskripsi </label>
                 <textarea name="deskripsi" rows="2" class="form-control" placeholder="Masukkan Deskripsi">{{ $produk->deskripsi }}</textarea>
                 @error('deskripsi')
                     <small class="text-danger">{{ $message }}</small>
@@ -130,7 +143,7 @@
     <div class="text-right">
         <button class="btn btn-success">Simpan</button>
     </div>
-    
+
 </form>
 @endsection
 
@@ -162,7 +175,7 @@
             $('#produk-nonukuran-konten').collapse('show')
         }
     })
-    
+
     $(document).on('click', '#tambah-ukuran', function(e){
         e.preventDefault();
         let index = $('#body-ukuran tr').length
@@ -182,5 +195,5 @@
     })
 
 </script>
-    
+
 @endpush

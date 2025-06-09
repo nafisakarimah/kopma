@@ -29,7 +29,7 @@
             <div id="product-carousel" class="carousel slide" data-ride="carousel">
                 <div class="carousel-inner bg-light shadow">
                     <div class="carousel-item active">
-                        <img class="w-100 h-100" src="{{ asset($produk->gambar) }}" alt="{{ $produk->nama }}">
+                        <img class="w-100 h-100" src="{{ url('uploads/'.$produk->gambar) }}" alt="{{ $produk->nama }}">
                     </div>
                 </div>
             </div>
@@ -45,7 +45,7 @@
                 <h5 class="mb-4">Rp. {{ number_format($produk->harga,0,',','.') }}</h5>
                 {{-- @if ($produk->kategori->ukuran == '1')
                 <span>
-                    Ukuran: 
+                    Ukuran:
                         @foreach ($produk->ukuran as $item)
                             <small class="badge badge-secondary">{{ $item->ukuran }}</small>
                         @endforeach
@@ -87,7 +87,7 @@
                             @enderror
                         </div>
                     </div>
-                    <button class="btn btn-primary px-3 mt-3 w-full"><i class="fa fa-shopping-cart mr-1"></i> Tambahkan Ke Keranjang</button>                   
+                    <button class="btn btn-primary px-3 mt-3 w-full"><i class="fa fa-shopping-cart mr-1"></i> Tambahkan Ke Keranjang</button>
                 </form>
                 {{-- @endif
                 @endauth --}}

@@ -42,7 +42,7 @@
                 <div class="dropdown-menu bg-secondary">
                     @if (auth()->user()->role == '1')
                     <a class="dropdown-item" href="{{ route('admin.transaksi.index') }}">Dashboard</a>
-                    <a class="dropdown-item" href="{{ route('admin.transaksi.index') }}">Transaksi</a>
+                    {{-- <a class="dropdown-item" href="{{ route('admin.transaksi.index') }}">Transaksi</a> --}}
                     @elseif(auth()->user()->role == '2')
                     <a class="dropdown-item" href="{{ route('user.profil.index') }}">Profil</a>
                     <a class="dropdown-item" href="{{ route('user.transaksi.index') }}">Transaksi</a>

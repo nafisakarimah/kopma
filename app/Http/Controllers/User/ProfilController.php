@@ -24,10 +24,25 @@ class ProfilController extends Controller
 
         $foto = auth()->user()->foto;
 
-        $path = $request->file('foto')->store('public/foto');
-        if($path)
+        // $path = $request->file('foto')->store('public/foto');
+        // if($path)
+        // {
+        //     $foto = Storage::url($path);
+        // }
+
+        $foto = 'assets/img/default.jpg';
+        if($request->hasFile('foto'))
         {
-            $foto = Storage::url($path);
+            $folder = 'foto';
+            $file = $request->file('foto');
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $newName = 'IMG-' . DATE("Ymd") . '-' . time();
+            $newNameWithExtension = $newName . '.' . $extension;
+
+            $upload = $file->move(base_path('/public/uploads/' . $folder), $newNameWithExtension);
+
+            $foto = $folder . '/' . $newNameWithExtension;
         }
 
         User::find(auth()->id())->update([
@@ -50,7 +65,7 @@ class ProfilController extends Controller
 
 
         $user = User::find(auth()->id());
-        
+
         $user->update([
             'nama' => $request->nama,
             'nak' => $request->nak,

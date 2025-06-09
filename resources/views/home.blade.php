@@ -19,7 +19,7 @@
         <div class="pc-4">
             <h1 class="fw-bold text-primary">Divisi Usaha</h1>
             <small class="d-block mb-4">yuk kepoin produknya disini</small>
-            
+
             @if(count($kategori))
                 <nav>
                     <div class="nav nav-tabs mb-4 border-0" id="nav-tab" role="tablist">
@@ -36,7 +36,7 @@
                                 <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
                                     <a href="{{ route('produk.detail',$produk->slug) }}" class="product-item bg-secondary mb-4 d-block rounded-3 text-decoration-none overflow-hidden" style="min-height: 420px">
                                         <div class="product-img position-relative overflow-hidden">
-                                            <img class="img-fluid w-100" src="{{ asset($produk->gambar) }}" alt="">
+                                            <img class="img-fluid w-100" src="{{ url('uploads/'.$produk->gambar) }}" alt="">
                                         </div>
                                         <div class="p-4 text-center">
                                             <h6 class="h6 text-decoration-none text-truncate ">{{ $produk->nama }}</h6>
@@ -64,7 +64,7 @@
         <div id="guskom" class="owl-carousel owl-theme">
             @foreach ($guskom as $item)
             <div style="width: 250px;" class="px-4 text-center">
-                <img src="{{ asset($item->gambar) }}" alt="" width="100%">
+                <img src="{{ url('uploads/'.$item->gambar) }}" alt="" width="100%">
                 <span class="d-block mt-3">{{ $item->nama }}</span>
                 <a href="{{ route('guskom.show',$item->slug) }}">Cek Selengkapnya >></a>
             </div>
@@ -72,7 +72,7 @@
         </div>
 
     </div>
-    
+
     <div class="bg-secondary">
         <div class="container py-5">
             <div class="row">
@@ -114,11 +114,12 @@
                 <p class="mb-3">{{ $item->masukan }}</p>
                 <div class="row">
                     <div class="col-2 px-0">
-                        <img src="{{ asset($item->user->foto? $item->user->foto : 'assets/img/fotoguest.png') }}" alt="" width="100%">
+                        <img src="{{ url(optional($item->user)->foto ? 'uploads/' . $item->user->foto : 'assets/img/fotoguest.png') }}" alt="" width="100%">
                     </div>
+
                     <div class="col-8">
-                        <h6 class="mb-0">{{ $item->user->nama }}</h6>
-                        <small>{{ $item->user->member == '1'? 'Member Aciko' : 'Customer' }}</small>
+                        <h6 class="mb-0">{{ optional($item->user)->nama }}</h6>
+                        <small>{{ optional($item->user)->member == '1'? 'Member Aciko' : 'Customer' }}</small>
                     </div>
                 </div>
             </div>

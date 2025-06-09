@@ -20,7 +20,7 @@
         <div class="col-md-8 mx-auto">
             <div class="d-flex align-items-center mb-3 justify-content-center">
                 <div class="foto-profil mx-4 border">
-                    <img src="{{ asset($data->foto? $data->foto : 'assets/img/fotoguest.png') }}" alt="" id="image-viewer-target">
+                    <img src="{{ url($data->foto? 'uploads/'.$data->foto : 'assets/img/fotoguest.png') }}" alt="" id="image-viewer-target">
                 </div>
                 @if ($data->member == '1' && $data->role == '2')
                 <div class="border-2 border-primary py-2 px-4 rounded">

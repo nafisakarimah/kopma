@@ -112,13 +112,23 @@ class AuthController extends Controller
 
     public function verify($email)
     {
-        $user = User::whereRaw("md5(email) = '$email'")->where('status','0')->firstOrFail();
+        $user = User::whereRaw("md5(email) = ?", [$email])->first();
+
+        if (!$user) {
+            return redirect()->route('login')->with('success', 'Akun tidak ditemukan.');
+        }
+
+        if ($user->status == 1) {
+            return redirect()->route('login')->with('success', 'Akun sudah aktif, silakan login.');
+        }
+
         $user->update([
             'status' => 1
         ]);
-        return redirect()->route('login')->with('success','Berhasil memverifikasi akun, silahkan login');
 
+        return redirect()->route('login')->with('success', 'Berhasil memverifikasi akun, silakan login.');
     }
+
 
     public function logout()
     {

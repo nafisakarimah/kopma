@@ -98,7 +98,7 @@ class KeranjangController extends Controller
                 ]);
             }
         }else{
-        
+
             if($cek->kategori->ukuran == '1')
             {
                 $ukuran = UkuranProduk::find($request->ukuran);
@@ -194,7 +194,7 @@ class KeranjangController extends Controller
         $total = 0;
 
         foreach($request->keranjang as $item){
-            $keranjang = Keranjang::find($item['id']); 
+            $keranjang = Keranjang::find($item['id']);
             $total += ($keranjang->produk->harga * $item['jumlah']);
         }
 
@@ -205,7 +205,7 @@ class KeranjangController extends Controller
 
         $index = 0;
         foreach($request->keranjang as $item){
-            $keranjang = Keranjang::find($item['id']); 
+            $keranjang = Keranjang::find($item['id']);
             if($keranjang->produk->kategori->ukuran == '1')
             {
                 $request->validate([
@@ -284,15 +284,22 @@ class KeranjangController extends Controller
         //     return redirect()->route('user.checkout.index')->withErrors(['error' => 'Minimal nominal pembelanjaan Rp 50.000 rupiah']);
         // }
 
-        $trx_no = Transaksi::where(['user_id' => auth()->id()])->orderBy('id','desc')->first();
-
-        $no_po = "TRX-".date('Ymd').'-'.auth()->id().'-0001';
-
-        if($trx_no)
-        {
-            $trx = str_replace("TRX-".date('Ymd').'-'.auth()->id().'-','',$trx_no->no_po);
-            $no_po = "TRX-".date('Ymd').'-'.auth()->id().'-'.str_pad($trx,4,'0',STR_PAD_LEFT);
+        $latest = Transaksi::where([
+            'user_id' => auth()->id()
+        ])->whereDate('created_at', date('Y-m-d')) // hanya hari ini
+          ->orderBy('id','desc')
+          ->first();
+        
+        $urutan = 1;
+        
+        if($latest){
+            // Ambil bagian nomor urutnya
+            $last_no = str_replace("TRX-".date('Ymd').'-'.auth()->id().'-','', $latest->no_po);
+            $urutan = (int)$last_no + 1;
         }
+        
+        $no_po = "TRX-".date('Ymd').'-'.auth()->id().'-'.str_pad($urutan, 4, '0', STR_PAD_LEFT);
+        
 
         $sv_transaksi = Transaksi::create([
             'user_id' => auth()->id(),
@@ -345,9 +352,9 @@ class KeranjangController extends Controller
 
     public function destroy(Request $request,Produk $produk)
     {
-        
+
         Keranjang::where(['user_id' => auth()->id(),'produk_id' => $produk->id])->delete();
-        
+
         return redirect()->route('user.keranjang.index')->with('success','Berhasil menghapus data keranjang');
 
     }

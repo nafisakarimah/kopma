@@ -17,7 +17,7 @@
     </div>
 @endif
 
-<form action="{{ route('admin.faq.udpate',$faq->id) }}" method="post">
+<form action="{{ route('admin.faq.update',$faq->id) }}" method="post">
     @csrf
     @method('put')
     <div class="row">
@@ -48,6 +48,6 @@
             </div>
         </div>
     </div>
-    
+
 </form>
 @endsection

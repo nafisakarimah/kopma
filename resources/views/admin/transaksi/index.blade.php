@@ -1,541 +1,327 @@
 @extends('layout.panel')
-@section('panel',true)
+@section('panel', true)
 
 @section('content')
 
 <h5>Transaksi</h5>
 
 @if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
+    <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
 @if ($errors->has('error'))
-    <div class="alert alert-danger">
-        {{ $errors->first('error') }}
-    </div>
+    <div class="alert alert-danger">{{ $errors->first('error') }}</div>
 @endif
 
- <div class="card rounded-3 mb-3 p-4" id="print">
+<div class="card rounded-3 mb-4 p-4 shadow-sm" id="export-area">
     <div class="card-body">
 
-
-        <div class="row w-100 my-4">
-            <div class="col-md-2 col-sm-12">
-                <label for="tgl_mulai" class="form-label">From</label> <br>
-                <input id="from" class="form-control form-control-sm" type="date" name="tgl_mulai" id="tgl_mulai">
+        {{-- Filter Tanggal --}}
+        <div class="row mb-4 hidden-pdf">
+            <div class="col-md-2">
+                <label class="form-label">From</label>
+                <input id="from" class="form-control form-control-sm" type="date">
             </div>
-            <div class="col-md-2 col-sm-12 ">
-
-                <label for="tgl_akhir" class="form-label">To</label> <br>
-                <input id="to" class="form-control form-control-sm" type="date" name="tgl_akhir" id="tgl_akhir">
+            <div class="col-md-2">
+                <label class="form-label">To</label>
+                <input id="to" class="form-control form-control-sm" type="date">
             </div>
-            <div class="col-md-2 col-sm-12 ">
-
-                <label for="filter" class="form-label smaller" >Tampilkan Berdasarkan</label> <br>
-                <select name="filter" id="filter" class="form-control form-control-sm">
-                    <option value="hari">Hari</option>
-                    <option value="bulan">Bulan</option>
-                </select>
+            <div class="col-md-2 d-flex align-items-end">
+                <button id="process-filtering" class="btn btn-warning w-100">Terapkan</button>
             </div>
-
-            <div class="col-md-2 col-sm-12 ">
-                <button id="process-filtering" class="btn btn-warning mt-4">Terapkan</button>
-            </div>
-
-            <div class="col-md-3">
-                <button id="download" class="btn btn-primary mt-4">Download PDF</button>
+            <div class="col-md-3 d-flex align-items-end">
+                <button id="download" class="btn btn-primary w-100">Download PDF</button>
             </div>
         </div>
 
-        <div>
-
-
-
-            <br>
-            <br>
-        <button class="ml-1 btn btn-lg btn-primary">Status</button>
-        </div>
-        <div class="row my-4">
-                <div class="col-md-3 col-sm-12">
-                    <canvas id="status_1" width="300px" height="200px"></canvas>
+        {{-- Chart --}}
+        <div class="d-flex justify-content-around mb-4 flex-wrap hidden-pdf" id="charts-wrapper">
+            @foreach (['Menunggu Konfirmasi', 'Dalam Proses', 'Selesai', 'Batal'] as $index => $label)
+                <div class="text-center m-2">
+                    <canvas id="chart{{ $index }}" width="120" height="120"></canvas>
+                    <div>{{ $label }}</div>
                 </div>
-
-                <div class="col-md-3 col-sm-12">
-                    <canvas id="status_2" width="300px" height="200px"></canvas>
-
-                </div>
-
-                <div class="col-md-3 col-sm-12">
-                    <canvas id="status_3" width="300px" height="200px"></canvas>
-
-                </div>
-
-                <div class="col-md-3 col-sm-12">
-                    <canvas id="status_4" width="300px" height="200px"></canvas>
-
-                </div>
-            </div>
-
-            <br>
-            <br>
-        <div class="d-flex mt-4">
-
-            <a href="#" class="btn btn-lg btn-primary" id="swalayan">Swalayan</a>
-            <a href="#" class="btn btn-lg btn-outline-primary ml-2" id="gamashirt">Gamashirt</a>
+            @endforeach
         </div>
-        <div class="row w-100 mt-3">
-                <div class="col-12">
-                        <h4 class="header-title" align="center">Statistik Penjualan</h4>
-                        <canvas id="mataChart" width="500"></canvas>
-                </div>
-        </div>
-        </div>
-    </div>
 
-<div class="card card-body border-0 mb-3">
-    <div class="row">
-        <div class="col-md-2">
-            <a href="{{ route('admin.transaksi.index',['status' => '']) }}" class="btn d-block {{ ($_GET['status']?? '') == ''? 'btn-primary' : 'border border-primary' }}">Semua</a>
+        <div class="mb-4 hidden-pdf">
+            <canvas id="barChart" width="400" height="150"></canvas>
         </div>
-        <div class="col-md-3">
-            <a href="{{ route('admin.transaksi.index',['status' => '0']) }}" class="btn d-block {{ ($_GET['status']?? '') == '0'? 'btn-primary' : 'border border-primary' }}">Menunggu dikonfirmasi</a>
+
+        {{-- Filter Status --}}
+        <div class="mb-3 hidden-pdf">
+            <button class="btn btn-secondary filter-btn" data-filter="all">Semua</button>
+            <button class="btn btn-warning filter-btn" data-filter="0">Menunggu</button>
+            <button class="btn btn-primary filter-btn" data-filter="1">Dalam Proses</button>
+            <button class="btn btn-success filter-btn" data-filter="2">Selesai</button>
+            <button class="btn btn-danger filter-btn" data-filter="3">Batal</button>
         </div>
-        <div class="col-md-2">
-            <a href="{{ route('admin.transaksi.index',['status' => '1']) }}" class="btn d-block {{ ($_GET['status']?? '') == '1'? 'btn-primary' : 'border border-primary' }}">Dalam Proses</a>
-        </div>
-        <div class="col-md-2">
-            <a href="{{ route('admin.transaksi.index',['status' => '2']) }}" class="btn d-block {{ ($_GET['status']?? '') == '2'? 'btn-primary' : 'border border-primary' }}">Selesai</a>
-        </div>
-        <div class="col-md-2">
-            <a href="{{ route('admin.transaksi.index',['status' => '3']) }}" class="btn d-block {{ ($_GET['status']?? '') == '3'? 'btn-primary' : 'border border-primary' }}">Batal</a>
-        </div>
+
+        {{-- Tabel --}}
+        <table class="table table-bordered datatable">
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th>#</th>
+                    <th>No Transaksi</th>
+                    <th>Pembeli</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th class="hidden-pdf">#</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $no = 1; @endphp
+                @foreach ($data as $trx)
+                    <tr data-status="{{ $trx->status }}" data-date="{{ \Carbon\Carbon::parse($trx->created_at)->format('Y-m-d') }}">
+                        <td>{{ $no++ }}</td>
+                        <td>{{ $trx->no_po ?? '' }}</td>
+                        <td>{{ optional($trx->user)->nama }}</td>
+                        <td>Rp. {{ number_format($trx->total, 0, ',', '.') }}</td>
+                        <td>
+                            @switch($trx->status)
+                                @case(0) <span class="badge bg-info" style="color:white;">Pesanan terkirim</span> @break
+                                @case(1) <span class="badge bg-primary" style="color:white;">Diterima koperasi</span> @break
+                                @case(2) <span class="badge bg-success" style="color:white;">Selesai</span> @break
+                                @case(3) <span class="badge bg-danger" style="color:white;">Batal</span> @break
+                            @endswitch
+                        </td>
+                        <td class="hidden-pdf">
+                            <a href="{{ route('admin.transaksi.show', $trx->id) }}" class="btn btn-info btn-sm">Rincian</a>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
     </div>
 </div>
 
+{{-- Template PDF (disembunyikan) --}}
+{{-- pdf-template --}}
+<div id="pdf-template" style="display: none; font-family: Arial, sans-serif;">
+    <h4 style="text-align: center; margin-bottom: 10px;">Laporan Transaksi</h4>
 
-<div class="card card-body rounded-3">
-<table class="table datatable">
-    <thead class="bg-primary text-white">
-      <tr>
-        <th class="text-white rounded-l-3">Tanggal</th>
-        <th class="text-white">No Transaksi</th>
-        <th class="text-white">Pembeli</th>
-        <th class="text-white">Total</th>
-        <th class="text-white" width="80px">Status</th>
-        <th class="text-white rounded-r-3">#</th>
-      </tr>
-    </thead>
-    <tbody>
-        @if(count($data))
-            @foreach ($data as $item)
+    {{-- Pie Charts kecil di atas --}}
+    <div id="pdf-piecharts" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px;"></div>
+
+    {{-- Bar Chart full width di bawah --}}
+    <div id="pdf-barchart" style="margin-top: 15px;"></div>
+
+    <table border="1" cellpadding="6" cellspacing="0" width="100%" style="border-collapse: collapse; font-size: 12px;">
+        <thead>
+            <tr style="background-color: #f2f2f2;">
+                <th>#</th>
+                <th>No Transaksi</th>
+                <th>Pembeli</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Tanggal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php $no = 1; @endphp
+            @foreach ($data as $trx)
                 <tr>
-                    <th>{{ $item->created_at }}</th>
-                    <th>{{ $item->no_po }}</th>
-                    <td>{{ $item->user->nama }}</td>
-                    <td class="font-weight-bold">Rp. {{ number_format($item->total,0,',','.') }}</td>
-                    <td class="text-capitalize">
-                        @if ($item->status == '0')
-                            <span class="badge rounded-pill px-2 badge-info">Pesanan terkirim</span>
-                        @elseif($item->status == '1')
-                            <span class="badge rounded-pill px-2 badge-success"><b>Pesanan sudah diterima oleh Koperasi</b> <br> Pengemudi sedang menuju ke alamat pengiriman</span>
-                        @elseif($item->status == '2')
-                            <span class="badge rounded-pill px-2 badge-success">Pesanan Selesai</span>
-                        @elseif($item->status == '3')
-                            <span class="badge rounded-pill px-2 badge-danger">Pesanan Batal</span>
-                        @endif
-                    </td>
+                    <td>{{ $no++ }}</td>
+                    <td>{{ $trx->no_po ?? '-' }}</td>
+                    <td>{{ optional($trx->user)->nama }}</td>
+                    <td>Rp. {{ number_format($trx->total, 0, ',', '.') }}</td>
                     <td>
-                        <form action="" method=""></form>
-                        <a href="{{ route('admin.transaksi.show',$item->id) }}" class="btn btn-info">Rincian</a>
+                        @switch($trx->status)
+                            @case(0) Menunggu @break
+                            @case(1) Proses @break
+                            @case(2) Selesai @break
+                            @case(3) Batal @break
+                        @endswitch
                     </td>
+                    <td>{{ \Carbon\Carbon::parse($trx->created_at)->format('d-m-Y') }}</td>
                 </tr>
             @endforeach
-        @endif
-    </tbody>
-  </table>
-
+        </tbody>
+    </table>
 </div>
+
+
 @endsection
 
-
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js">
+<script>
+    let chartInstances = {};
+    let barChartInstance = null;
+    const colors = { 0: '#4a90e2', 1: '#f5a623', 2: '#7ed321', 3: '#ff0000' };
+    const statusLabels = { 0: 'Menunggu', 1: 'Proses', 2: 'Selesai', 3: 'Batal' };
 
-    </script>
-    <script>
-        var statusProgress1 = document.getElementById("status_1")
-        var statusProgress2 = document.getElementById("status_2")
-        var statusProgress3 = document.getElementById("status_3")
-        var statusProgress4 = document.getElementById("status_4")
+    function parseDate(dateString) {
+        const parts = dateString.split("-");
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
 
-        var myChartCircle = new Chart(statusProgress1, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    label: 'Menunggu Konfirmasi',
-                    percent: <?= $newPresentase ?> ,
-                    backgroundColor: ['#5283ff','#e3e5e8']
-                    }]
-            },
-            plugins: [
-                {
-                beforeInit: (chart) => {
-                    const dataset = chart.data.datasets[0];
-                    chart.data.labels = [dataset.label];
-                    dataset.data = [dataset.percent, 100 - dataset.percent];
-                }
-                },
+    function getFilteredStatusCounts(from, to) {
+        let counts = { 0: 0, 1: 0, 2: 0, 3: 0 };
+        let total = 0;
 
-                {
-                    beforeDraw: function(chart) {
-                        var width = chart.width,
-                            height = chart.height,
-                            ctx = chart.ctx;
+        $('table.datatable tbody tr').each(function () {
+            const rowDate = $(this).data('date');
+            const status = $(this).data('status');
+            const date = parseDate(rowDate);
 
-                        ctx.restore();
-                        var fontSize = (height / 150).toFixed(2);
-                        ctx.font = fontSize + "em sans-serif";
-                        ctx.fillStyle = "#9b9b9b";
-                        ctx.textBaseline = "middle";
-
-                        var text = "<?= $newPresentase ?>%",
-                            textX = Math.round((width - ctx.measureText(text).width) / 2),
-                            textY = height / 2;
-
-                        ctx.fillText(text, textX, textY);
-                        ctx.save();
-                    },
-
-                },
-
-
-        ],
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutoutPercentage: 85,
-                rotation: Math.PI / 2,
-                plugins: {
-                title: {
-                    display: true,
-                     text: 'New'
-                }
-                }
-            },
-            tooltips: {
-                filter: tooltipItem => tooltipItem.index == 0
-                }
-            });
-
-        var myChartCircle2 = new Chart(statusProgress2, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    label: 'Dalam Proses',
-                    percent: <?= $ongoingPresentase ?>,
-                    backgroundColor: ['#fa9e25','#e3e5e8']
-                    }]
-            },
-            plugins: [
-                {
-                beforeInit: (chart) => {
-                    const dataset = chart.data.datasets[0];
-                    chart.data.labels = [dataset.label];
-                    dataset.data = [dataset.percent, 100 - dataset.percent];
-                }
-                },
-
-                {
-                    beforeDraw: function(chart) {
-                        var width = chart.width,
-                            height = chart.height,
-                            ctx = chart.ctx;
-
-                        ctx.restore();
-                        var fontSize = (height / 150).toFixed(2);
-                        ctx.font = fontSize + "em sans-serif";
-                        ctx.fillStyle = "#9b9b9b";
-                        ctx.textBaseline = "middle";
-
-                        var text = "<?= $ongoingPresentase ?>%",
-                            textX = Math.round((width - ctx.measureText(text).width) / 2),
-                            textY = height / 2;
-
-                        ctx.fillText(text, textX, textY);
-                        ctx.save();
-                    },
-
-                },
-
-
-        ],
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutoutPercentage: 85,
-                rotation: Math.PI / 2,
-                plugins: {
-                legend: {
-                    display:false,
-                },
-                title: {
-                    display: false,
-                }
-                }
-            },
-            tooltips: {
-                filter: tooltipItem => tooltipItem.index == 0
-                }
-            });
-
-        var myChartCircle3 = new Chart(statusProgress3, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    label: 'Selesai',
-                    percent: <?= $donePresentase ?>,
-                    backgroundColor: ['#71f55d','#e3e5e8']
-                    }]
-            },
-            plugins: [
-                {
-                beforeInit: (chart) => {
-                    const dataset = chart.data.datasets[0];
-                    chart.data.labels = [dataset.label];
-                    dataset.data = [dataset.percent, 100 - dataset.percent];
-                }
-                },
-
-                {
-                    beforeDraw: function(chart) {
-                        var width = chart.width,
-                            height = chart.height,
-                            ctx = chart.ctx;
-
-                        ctx.restore();
-                        var fontSize = (height / 150).toFixed(2);
-                        ctx.font = fontSize + "em sans-serif";
-                        ctx.fillStyle = "#9b9b9b";
-                        ctx.textBaseline = "middle";
-
-                        var text = "<?= $donePresentase ?>%",
-                            textX = Math.round((width - ctx.measureText(text).width) / 2),
-                            textY = height / 2;
-
-                        ctx.fillText(text, textX, textY);
-                        ctx.save();
-                    },
-
-                },
-
-
-        ],
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutoutPercentage: 85,
-                rotation: Math.PI / 2,
-                plugins: {
-                legend: {
-                    display:false,
-                },
-                title: {
-                    display: false,
-                }
-                }
-            },
-            tooltips: {
-                filter: tooltipItem => tooltipItem.index == 0
-                }
-            });
-
-
-            var myChartCircle4 = new Chart(statusProgress4, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    label: 'Batal',
-                    percent: <?= $cancelledPresentase ?>,
-                    backgroundColor: ['#FF0000','#e3e5e8']
-                    }]
-            },
-            plugins: [
-                {
-                beforeInit: (chart) => {
-                    const dataset = chart.data.datasets[0];
-                    chart.data.labels = [dataset.label];
-                    dataset.data = [dataset.percent, 100 - dataset.percent];
-                }
-                },
-
-                {
-                    beforeDraw: function(chart) {
-                        var width = chart.width,
-                            height = chart.height,
-                            ctx = chart.ctx;
-
-                        ctx.restore();
-                        var fontSize = (height / 150).toFixed(2);
-                        ctx.font = fontSize + "em sans-serif";
-                        ctx.fillStyle = "#9b9b9b";
-                        ctx.textBaseline = "middle";
-
-                        var text = "<?= $cancelledPresentase ?>%",
-                            textX = Math.round((width - ctx.measureText(text).width) / 2),
-                            textY = height / 2;
-
-                        ctx.fillText(text, textX, textY);
-                        ctx.save();
-                    },
-
-                },
-
-
-        ],
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutoutPercentage: 85,
-                rotation: Math.PI / 2,
-                plugins: {
-                legend: {
-                    display:false,
-                },
-                title: {
-                    display: false,
-                }
-                }
-            },
-            tooltips: {
-                filter: tooltipItem => tooltipItem.index == 0
-                }
-            });
-
-
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="text/javascript" src="{{ asset('assets/lib/html2canvas/html2canvas.min.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js" integrity="sha384-NaWTHo/8YCBYJ59830LTz/P4aQZK1sS0SneOgAvhsIl3zBu8r9RevNg5lHCHAuQ/" crossorigin="anonymous"></script>
-    <script>
-        const myArray = Object.values(@json($datasets));
-        var data = {
-            labels: @json($labels),
-            datasets:myArray
-        };
-
-        var config = {
-        type: 'bar',
-        data: data,
-        options: {
-            plugins: {
-            title: {
-                display: true,
-                text: 'Data penjualan barang'
-            },
-            },
-            responsive: true,
-            scales: {
-            x: {
-                stacked: true,
-            },
-            y: {
-                stacked: true
+            if ((!from || date >= parseDate(from)) && (!to || date <= parseDate(to))) {
+                $(this).show();
+                counts[status]++;
+                total++;
+            } else {
+                $(this).hide();
             }
-            }
-        }
-        };
+        });
 
-        var ctx = document.getElementById("mataChart").getContext('2d');
-        var myChart = new Chart(ctx, config);
+        return { counts, total };
+    }
 
-        $("#from").on('change',(e) => {
-            $("#to").attr({"min":e.target.value})
-        })
+    function updateCharts(from, to) {
+        const { counts, total } = getFilteredStatusCounts(from, to);
 
-        $("#to").on('change',(e) => {
+        Object.keys(counts).forEach(id => {
+            const percent = total > 0 ? Math.round((counts[id] / total) * 100) : 0;
 
-            console.log(e.target.value);
-        })
+            if (chartInstances[id]) chartInstances[id].destroy();
 
-        $("#filter").on('change',(e) => {
-            console.log(e.target.value);
+            chartInstances[id] = new Chart(document.getElementById(`chart${id}`), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [percent, 100 - percent],
+                        backgroundColor: [colors[id], '#e8eaed'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    responsive: false,
+                    plugins: {
+                        tooltip: { enabled: false },
+                        legend: { display: false },
+                        datalabels: {
+                            display: true,
+                            formatter: (value) => value === percent ? `${value}%` : '',
+                            color: '#666',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        });
 
-        })
+        // Bar chart
+        const barData = Object.values(counts);
+        if (barChartInstance) barChartInstance.destroy();
+
+        barChartInstance = new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.values(statusLabels),
+                datasets: [{
+                    label: 'Jumlah Transaksi',
+                    data: barData,
+                    backgroundColor: Object.keys(colors).map(k => colors[k]),
+                    borderRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#444',
+                        font: { weight: 'bold' },
+                        formatter: v => v > 0 ? v : ''
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+
+    function cloneCanvasToPdf() {
+    const pdfPieDiv = document.getElementById('pdf-piecharts');
+    const pdfBarDiv = document.getElementById('pdf-barchart');
+
+    pdfPieDiv.innerHTML = ''; // Kosongkan dulu
+    pdfBarDiv.innerHTML = '';
+
+    // Clone semua pie chart (canvas chart0..chart3)
+    for(let i=0; i<4; i++) {
+        const originalCanvas = document.getElementById(`chart${i}`);
+        const imgData = originalCanvas.toDataURL('image/png');
+
+        const img = document.createElement('img');
+        img.src = imgData;
+        img.style.width = '80px';   // Ukuran kecil supaya gak besar
+        img.style.margin = '0 8px';
+        img.alt = `Pie Chart ${i}`;
+
+        pdfPieDiv.appendChild(img);
+    }
+
+    // Clone bar chart full width
+    const barCanvas = document.getElementById('barChart');
+    const barImgData = barCanvas.toDataURL('image/png');
+
+    const barImg = document.createElement('img');
+    barImg.src = barImgData;
+    barImg.style.width = '100%';
+    barImg.style.marginTop = '10px';
+    barImg.alt = 'Bar Chart';
+
+    pdfBarDiv.appendChild(barImg);
+}
 
 
-        $("#process-filtering").on('click',(e) => {
+    $(document).ready(function () {
+        updateCharts(null, null);
 
-            if($("#from").val() && $("#to")){
-                let url = "<?= url('admin/transaksi/') ?>/filter?from="+$("#from").val()+"&to="+$("#to").val()+"&basedOn="+$("#filter").val()
+        $('#process-filtering').on('click', function () {
+            const from = $('#from').val();
+            const to = $('#to').val();
+            updateCharts(from, to);
+        });
 
-                $.get(url, function (e) {
+        $('.filter-btn').on('click', function () {
+            const filter = $(this).data('filter');
+            $('table.datatable tbody tr').each(function () {
+                const status = $(this).data('status');
+                $(this).toggle(filter === 'all' || status == filter);
+            });
+        });
 
-                    const myArray = Object.values(e.datasets)
-                    data.datasets = myArray
-                    data.labels = e.label
-                    myChart.update()
-                });
-            }
+        $('#download').on('click', function () {
+            // Clone chart canvas ke dalam pdf-template
+            cloneCanvasToPdf();
 
-        })
-        $("#download").on('click',(e) => {
-            window.print()
-        })
+            const pdfElement = document.getElementById('pdf-template');
+            pdfElement.style.display = 'block';
 
+            const opt = {
+                margin: 0.3,
+                filename: 'laporan-transaksi.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
 
-         $("#swalayan").on("click",function (e) {
-            $("#gamashirt").removeClass("btn-primary")
-            $("#gamashirt").addClass("btn-outline-primary")
-            $("#swalayan").removeClass("btn-outline-primary")
-            $("#swalayan").addClass("btn-primary")
-
-             let url = "<?= url('admin/transaksi/') ?>/filter?from="+$("#from").val()+"&to="+$("#to").val()+"&basedOn="+$("#filter").val()+"&category=swalayan"
-
-                $.get(url, function (e) {
-
-                     const myArray = Object.values(e.datasets);
-                    console.log(myArray);
-                    data.datasets = myArray;
-                    data.labels = e.label
-
-                    myChart.update()
-                });
-
-
-        })
-        $("#gamashirt").on("click",function (e) {
-            $("#gamashirt").removeClass("btn-outline-primary")
-            $("#gamashirt").addClass("btn-primary")
-
-            $("#swalayan").removeClass("btn-primary")
-            $("#swalayan").addClass("btn-outline-primary")
-
-            let url = "<?= url('admin/transaksi/') ?>/filter?from="+$("#from").val()+"&to="+$("#to").val()+"&basedOn="+$("#filter").val()+"&category=gamashirt"
-
-                $.get(url, function (e) {
-
-                    const myArray = Object.values(e.datasets);
-                    console.log(myArray);
-                    data.datasets = myArray;
-                    data.labels = e.label
-
-                    myChart.update()
-                });
-
-        })
-
-        let date = new Date()
-        let from = date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString().padStart(2, 0) + '-' + "01";
-        let to = date.getFullYear().toString() + '-' + (date.getMonth() + 1).toString().padStart(2, 0) + '-' + date.getDate().toString().padStart(2, 0);
-
-        $("#from").val(from)
-        $("#to").val(to)
-
-
-    </script>
-
+            html2pdf().set(opt).from(pdfElement).save().then(() => {
+                pdfElement.style.display = 'none';
+            });
+        });
+    });
+</script>
 @endpush

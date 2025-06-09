@@ -11,11 +11,17 @@
     </div>
 @endif
 
-@if ($errors->has('error'))
-    <div class="alert alert-danger">
-        {{ $errors->first('error') }}
+@if ($errors->any())
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <strong>Oops!</strong> Ada beberapa masalah dengan input kamu:<br><br>
+        <ul class="list-disc pl-5">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
     </div>
 @endif
+
 
 <form action="{{ route('admin.produk.store') }}" method="post" enctype="multipart/form-data">
     @csrf
@@ -69,7 +75,7 @@
                 @enderror
             </div>
         </div>
-        
+
         <div class="col-md-6 collapse" id="produk-ukuran-konten">
             <div class="form-group">
                 <label for="">Ukuran</label>
@@ -116,12 +122,12 @@
                     <small class="text-danger">{{ $message }}</small>
                 @enderror
             </div>
-        </div>        
+        </div>
     </div>
     <div class="text-right">
         <button class="btn btn-success">Simpan</button>
     </div>
-    
+
 </form>
 @endsection
 
@@ -153,7 +159,7 @@
             $('#produk-nonukuran-konten').collapse('show')
         }
     })
-    
+
     $(document).on('click', '#tambah-ukuran', function(e){
         e.preventDefault();
         let index = $('#body-ukuran tr').length
@@ -173,5 +179,5 @@
     })
 
 </script>
-    
+
 @endpush

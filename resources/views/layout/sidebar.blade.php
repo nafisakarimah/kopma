@@ -1,6 +1,6 @@
 
 <nav class="sidebar" id="sidebar">
-    <div class="text-right p-3">    
+    <div class="text-right p-3">
         <button type="button" class="navbar-toggler" id="btn-toggle-sidebar">
             <i class="fa fa-times text-primary"></i>
         </button>
@@ -13,7 +13,7 @@
     {{-- <span class="p-3 d-block text-muted">Main Menu</span> --}}
     <div class="sidebar-header">
         <a href="{{ url('') }}" class="sidebar-header-img" style="width: 100px;height: 100px;border-radius: 50%;overflow: hidden;display: block">
-            <img src="{{ asset(auth()->user()->foto? auth()->user()->foto : 'assets/img/fotoguest.png') }}" alt="" width="100%">
+            <img src="{{ asset(auth()->user()->foto ? 'uploads/' . auth()->user()->foto : 'assets/img/fotoguest.png') }}" alt="" width="100%">
         </a>
         <h6 class="text-dark fw-bold">{{ auth()->user()->nama }}</h6>
     </div>

@@ -15,7 +15,7 @@
                             <div class="row">
                                 <div class="col-6 px-0 mx-auto mb-n5 position-relative" style="z-index: 1">
                                     <div class="foto-profil">
-                                        <img src="{{ asset($item->user->foto? $item->user->foto : 'assets/img/fotoguest.png') }}" alt="" width="100%">
+                                        <img src="{{ asset($item->user->foto? 'uploads/' .$item->user->foto : 'assets/img/fotoguest.png') }}" alt="" width="100%">
                                     </div>
                                 </div>
                                 <div class="col-12 bg-body px-3 pt-5 pb-3 text-center rounded-3">
@@ -32,7 +32,7 @@
                 <h5>Ingin memberi feedback pada kami?</h5>
                 <h6>bisa kirimkan lewat form ini ya! </h6>
             </div>
-            @if(!$feedback)
+            {{-- @if(!$feedback) --}}
             <div class="row mb-5">
                 <div class="col-md-8 mx-auto">
                     <h5>Apa Kata Kamu ?</h5>
@@ -61,7 +61,7 @@
                     </form>
                 </div>
             </div>
-            @endif
+            {{-- @endif --}}
         </div>
     </div>
 </div>

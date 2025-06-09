@@ -19,110 +19,16 @@ class TransaksiController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
-    {
-        $data = new Transaksi;
-        if($request->input('status') != '')
-        {
-            $data = $data->where('status',$request->status);
-        }
-        $data = $data->orderBy('created_at','desc')->get();
 
-        $transaksi = DB::table('transaksi')
-            ->join('users', 'transaksi.user_id', '=', 'users.id')
-            ->join('detail_transaksi', 'transaksi.id', '=', 'detail_transaksi.transaksi_id')
-            ->join('produk', 'detail_transaksi.produk_id', '=', 'produk.id')
-            ->join('kategori', 'produk.kategori_id', '=', 'kategori.id')
-            ->whereYear('transaksi.created_at', date('Y'))
-            ->whereMonth('transaksi.created_at', date('m'))
-            ->whereDate('transaksi.created_at', '<=', now())
-            ->where('transaksi.status', 2)
-            ->where('kategori.nama','=', "Swalayan")
-            ->select(
-                DB::raw('DATE(transaksi.created_at) as tanggal'),
-                'produk.nama as nama_barang',
-                DB::raw('SUM(detail_transaksi.jumlah) as total_barang')
-            )
-            ->groupBy('tanggal', 'produk.nama')
-            ->get();
+     public function index()
+     {
+         // Ambil semua data transaksi tanpa filter
+         $data = Transaksi::orderBy('created_at', 'desc')->get();
 
-        $chartData = array(
-            'labels' => array(),
-            'datasets' => array()
-            );
-
-        $uniqueDates = [];
-
-        $groupedData = [];
-        foreach ($transaksi as $item) {
-            $productName = $item->nama_barang;
-            $date = $item->tanggal;
-            $total = (int) $item->total_barang;
-
-            if (!in_array($date, $uniqueDates)) {
-                $uniqueDates[] = $date;
-            }
-
-            if (!isset($groupedData[$productName])) {
-                $groupedData[$productName] = [
-                    'label' => $productName,
-                    'data' => array_fill(0, count($uniqueDates), 0)
-                ];
-            }
-
-            $dateIndex = array_search($date, $uniqueDates);
-            $groupedData[$productName]['data'][$dateIndex] = $total;
-        }
-
-        asort($uniqueDates);
-
-        $datasets = [];
-        foreach ($groupedData as $item) {
-            $datasets[] = [
-                'label' => $item['label'],
-                'data' => array_values($item['data'])
-            ];
-        }
-
-
-        // status pesanan
-        $allTransaksi =  count(Transaksi::get());
-
-        $new =   count(Transaksi::where("status",'=',0)->whereYear("created_at",date('Y'))->whereMonth("created_at",date('m'))->get());
-        $ongoing = count(Transaksi::where("status",'=',1)->whereYear("created_at",date('Y'))->whereMonth("created_at",date('m'))->get());
-        $done = count(Transaksi::where("status",'=',2)->whereYear("created_at",date('Y'))->whereMonth("created_at",date('m'))->get());
-        $cancelled = count(Transaksi::where("status",'=',3)->whereYear("created_at",date('Y'))->whereMonth("created_at",date('m'))->get());
-
-
-        if($allTransaksi != 0) {
-            $newPresentase =   intval(count(Transaksi::where("status",'=',0)->whereYear("created_at",date('Y'))->whereMonth("created_at",date('m'))->get())/$allTransaksi * 100);
-            $ongoingPresentase = intval(count(Transaksi::where("status",'=',1)->whereYear("created_at",date('Y'))->whereMonth("created_at",date('m'))->get())/$allTransaksi * 100);
-            $donePresentase = intval(count(Transaksi::where("status",'=',2)->whereYear("created_at",date('Y'))->whereMonth("created_at",date('m'))->get())/$allTransaksi * 100);
-            $cancelledPresentase = intval(count(Transaksi::where("status",'=',3)->whereYear("created_at",date('Y'))->whereMonth("created_at",date('m'))->get())/$allTransaksi * 100);
-
-        } else {
-            $newPresentase =  0;
-            $ongoingPresentase = 0;
-            $donePresentase = 0;
-            $cancelledPresentase = 0;
-
-        }
-
-
-        return view('admin.transaksi.index',[
-            'data' => $data,
-            'labels' => $uniqueDates,
-            'datasets' => $datasets,
-            'new' => $new,
-            'ongoing' => $ongoing,
-            'done' => $done,
-            'cancelled' => $cancelled,
-            'newPresentase' => $newPresentase,
-            'ongoingPresentase' => $ongoingPresentase,
-            'donePresentase' => $donePresentase,
-            'cancelledPresentase' => $cancelledPresentase,
-        ]);
-    }
+         return view('admin.transaksi.index', [
+             'data' => $data
+         ]);
+     }
 
     public function show(Transaksi $transaksi)
     {
@@ -161,13 +67,22 @@ class TransaksiController extends Controller
     {
 
         $request->validate([
-            'bukti_barang_sampai' => 'required|image|mimes:png,jpg'
+            'bukti_barang_sampai' => 'required|image'
         ]);
         $gambar = 'error';
-        $path = $request->file('bukti_barang_sampai')->store('public/transaksi/bukti');
-        if($path)
+
+        if($request->hasFile('bukti_barang_sampai'))
         {
-            $gambar = Storage::url($path);
+            $folder = 'transaksi/bukti';
+            $file = $request->file('bukti_barang_sampai');
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $newName = 'IMG-' . DATE("Ymd") . '-' . time();
+            $newNameWithExtension = $newName . '.' . $extension;
+
+            $upload = $file->move(base_path('/public/uploads/' . $folder), $newNameWithExtension);
+
+            $gambar = $folder . '/' . $newNameWithExtension;
         }
 
         $transaksi->update([

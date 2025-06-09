@@ -47,10 +47,11 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <h4 class="text-primary">Lokasi :</h4>
-                                    <p>Jl. pangeran jayakarta ,budirahayu 1 No.3 Jakarta Pusat 10730</p>
+                                    <p>Jl. Cik Di Tiro No.14, Terban, Kec. Gondokusuman, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55223</p>
                                 </div>
-                                <div class="col-md-8"> 
-                                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.8932901851335!2d106.8276238114132!3d-6.145032693816265!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5e1b8ad8c87%3A0x844d21e33a39a44b!2sJl.%20Pangeran%20Jayakarta%20No.%201%2C%20Gg%20Budi%20Rahayu%203%2C%20RT003%2FRW009%2C%20Mangga%20Dua%2C%20Sawah%20Besar%2010730!5e0!3m2!1sid!2sid!4v1688196404249!5m2!1sid!2sid" width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                                <div class="col-md-8">
+
+                                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.09020344319!2d110.3755899!3d-7.780260199999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a584a64a8c80d%3A0x8a3e45ee1d989b96!2sKoperasi%20Mahasiswa%20KOPMA%20UGM!5e0!3m2!1sid!2sid!4v1749084941927!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                                 </div>
                             </div>
                         </div>

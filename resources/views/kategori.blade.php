@@ -25,7 +25,7 @@
                         <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
                             <a href="{{ route('produk.detail',$produk->slug) }}" class="product-item bg-secondary mb-4 d-block rounded-3 text-decoration-none overflow-hidden" style="min-height: 420px">
                                 <div class="product-img position-relative overflow-hidden">
-                                    <img class="img-fluid w-100" src="{{ asset($produk->gambar) }}" alt="">
+                                    <img class="img-fluid w-100" src="{{ url('uploads/'.$produk->gambar) }}" alt="">
                                 </div>
                                 <div class="p-4 text-center">
                                     <h6 class="h6 text-decoration-none text-truncate ">{{ $produk->nama }}</h6>

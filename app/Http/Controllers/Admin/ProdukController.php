@@ -45,82 +45,75 @@ class ProdukController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        // Ambil kategori lebih awal untuk digunakan dalam validasi dinamis
+        $kategori = Kategori::findOrFail($request->kategori);
+
+        // Aturan validasi dasar
+        $rules = [
             'kategori' => 'required|exists:kategori,id',
-            'gambar' => 'required|image|mimes:png,jpg',
+            'gambar' => 'required|image',
             'nama' => 'required',
-            'stok' => 'nullable',
             'harga' => 'required',
-            'ukuran' => 'nullable|array',
-            'ukuran.*.ukuran' => 'required',
-            'ukuran.*.stok' => 'min:1',
             'deskripsi' => 'required',
-        ]);
+        ];
 
-        $kategori = Kategori::find($request->kategori);
-
-        if($kategori->ukuran == '1')
-        {
-            $request->validate([
-                'kategori' => 'required|exists:kategori,id',
-                'gambar' => 'required|image|mimes:png,jpg',
-                'nama' => 'required',
-                'stok' => 'nullable',
-                'harga' => 'required',
-                'ukuran' => 'required|array',
-                'ukuran.*.ukuran' => 'required',
-                'ukuran.*.stok' => 'min:1',
-                'deskripsi' => 'required',
-            ]);
-        }else{
-            $request->validate([
-                'kategori' => 'required|exists:kategori,id',
-                'gambar' => 'required|image|mimes:png,jpg',
-                'nama' => 'required',
-                'stok' => 'required',
-                'harga' => 'required',
-                'ukuran' => 'nullable|array',
-                'ukuran.*.ukuran' => 'required',
-                'ukuran.*.stok' => 'min:1',
-                'deskripsi' => 'required',
-            ]);
+        // Tambahan aturan validasi berdasarkan kategori
+        if ($kategori->ukuran == '1') {
+            $rules['ukuran'] = 'required|array';
+            $rules['ukuran.*.ukuran'] = 'required';
+            $rules['ukuran.*.stok'] = 'required|numeric|min:1';
+        } else {
+            $rules['stok'] = 'required|numeric|min:0';
         }
 
-        $path = $request->file('gambar')->store('public/produk');
-        if($path)
+        // Jalankan validasi
+        $validated = $request->validate($rules);
+
+        // Handle upload gambar
+        $gambarPath = 'assets/img/default.jpg';
+
+        if($request->hasFile('gambar'))
         {
-            $gambar = Storage::url($path);
+            $folder = 'gambar';
+            $file = $request->file('gambar');
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $newName = 'IMG-' . DATE("Ymd") . '-' . time();
+            $newNameWithExtension = $newName . '.' . $extension;
+
+            $upload = $file->move(base_path('/public/uploads/' . $folder), $newNameWithExtension);
+
+            $gambarPath = $folder . '/' . $newNameWithExtension;
         }
 
-        $produkSv = Produk::create([
+
+        // Simpan produk
+        $produk = Produk::create([
             'kategori_id' => $request->kategori,
-            'gambar' => $gambar,
+            'gambar' => $gambarPath,
             'nama' => $request->nama,
             'slug' => $this->generate_slug($request->nama),
             'harga' => $request->harga,
-            'stok' => $request->stok,
-            'deskripsi' => $request->deskripsi
+            'stok' => $kategori->ukuran == '1' ? null : $request->stok,
+            'deskripsi' => $request->deskripsi,
         ]);
 
-        if($produkSv)
-        {
-            if($kategori->ukuran == '1')
-            {
-                $ukuranData = [];
-                foreach($request->ukuran as $item){
-                    $ukuranData[] = [
-                        'produk_id' => $produkSv->id,
-                        'ukuran' => $item['ukuran'],
-                        'stok' => $item['stok']
-                    ];
-                }
-                UkuranProduk::insert($ukuranData);
-            }
+        // Simpan ukuran jika kategori menggunakan ukuran
+        if ($kategori->ukuran == '1' && $request->has('ukuran')) {
+            $ukuranData = collect($request->ukuran)->map(function ($item) use ($produk) {
+                return [
+                    'produk_id' => $produk->id,
+                    'ukuran' => $item['ukuran'],
+                    'stok' => $item['stok']
+                ];
+            })->toArray();
+
+            UkuranProduk::insert($ukuranData);
         }
 
-        return redirect()->route('admin.produk.index')->with('success','Berhasil menambahkan data');
-
+        return redirect()->route('admin.produk.index')->with('success', 'Berhasil menambahkan data');
     }
+
 
     /**
      * Display the specified resource.
@@ -155,9 +148,10 @@ class ProdukController extends Controller
      */
     public function update(Request $request, Produk $produk)
     {
+        // dd("update");
         $request->validate([
             'kategori' => 'required|exists:kategori,id',
-            'gambar' => 'nullable|image|mimes:png,jpg',
+            'gambar' => 'nullable|image',
             'nama' => 'required',
             'stok' => 'required',
             'harga' => 'required',
@@ -166,6 +160,7 @@ class ProdukController extends Controller
             'ukuran.*.stok' => 'min:1',
             'deskripsi' => 'required',
         ]);
+        // dd($request->all());
 
         $kategori = Kategori::find($request->kategori);
 
@@ -175,7 +170,6 @@ class ProdukController extends Controller
                 'kategori' => 'required|exists:kategori,id',
                 'gambar' => 'nullable|image|mimes:png,jpg',
                 'nama' => 'required',
-                'stok' => 'required',
                 'harga' => 'required',
                 'ukuran' => 'required|array',
                 'ukuran.*.ukuran' => 'required',
@@ -183,19 +177,21 @@ class ProdukController extends Controller
                 'deskripsi' => 'required',
             ]);
         }
-        
+
         $gambar = $produk->gambar;
 
-        if($request->file('gambar'))
+        if($request->hasFile('gambar'))
         {
-            $request->validate([
-                'gambar' => 'required|image|mimes:png,jpg',
-            ]);
-            $path = $request->file('gambar')->store('public/produk');
-            if($path)
-            {
-                $gambar = Storage::url($path);
-            }
+            $folder = 'gambar';
+            $file = $request->file('gambar');
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $newName = 'IMG-' . DATE("Ymd") . '-' . time();
+            $newNameWithExtension = $newName . '.' . $extension;
+
+            $upload = $file->move(base_path('/public/uploads/' . $folder), $newNameWithExtension);
+
+            $gambar = $folder . '/' . $newNameWithExtension;
         }
 
         $produk->update([
@@ -225,7 +221,7 @@ class ProdukController extends Controller
 
         return redirect()->route('admin.produk.index')->with('success','Berhasil mengubah data');
     }
-    
+
     /**
      * Remove the specified resource from storage.
      *
